@@ -59,12 +59,12 @@ pub fn add_company_complaint_route(
 
 pub async fn add_company_complaint(
     db: Database,
-    company: CompanyComplaint,
+    company_complaint: CompanyComplaint,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    log::debug!("Adding company {:?}", company);
+    log::debug!("Adding company complaint {:?}", company_complaint);
 
-    db.collection::<CompanyComplaint>("company_issues")
-        .insert_one(company, None)
+    db.collection::<CompanyComplaint>("company_complaints")
+        .insert_one(company_complaint, None)
         .await
         .map(|_| warp::reply::json(&"Success"))
         .map_err(|err| warp::reject::custom(Error(err.to_string())))
@@ -73,7 +73,7 @@ pub async fn add_company_complaint(
 pub fn get_company_complaints_route(
     db: Database,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    warp::path!("get_company_issues" / String)
+    warp::path!("get_company_complaints" / String)
         .and(warp::get())
         .and(with_db(db))
         .and_then(get_company_complaints)
@@ -104,7 +104,7 @@ pub async fn get_company_complaints(
 pub fn get_employee_count_route(
     db: Database,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    warp::path!("get_company_issues" / String)
+    warp::path!("get_employee_count" / String)
         .and(warp::get())
         .and(with_db(db))
         .and_then(get_employee_count)
