@@ -16,6 +16,13 @@ pub struct CompanyComplaint {
     complaint: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MeetingInfo {
+    company_name: String,
+    time: String,
+    place: String,
+}
+
 #[derive(Debug)]
 pub struct Error(String);
 
@@ -44,6 +51,54 @@ pub async fn signup(db: Database, worker: Worker) -> Result<impl warp::Reply, wa
         .insert_one(worker, None)
         .await
         .map(|_| warp::reply::json(&"Success"))
+        .map_err(|err| warp::reject::custom(Error(err.to_string())))
+}
+
+pub fn add_meeting_route(
+    db: Database,
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    warp::path!("add_meeting")
+        .and(warp::post())
+        .and(with_db(db))
+        .and(warp::body::json())
+        .and_then(add_meeting)
+}
+
+pub async fn add_meeting(
+    db: Database,
+    meeting_info: MeetingInfo,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    log::debug!("Adding meeting info {:?}", meeting_info);
+
+    db.collection::<MeetingInfo>("meetings")
+        .insert_one(meeting_info, None)
+        .await
+        .map(|_| warp::reply::json(&"Success"))
+        .map_err(|err| warp::reject::custom(Error(err.to_string())))
+}
+
+pub fn get_meeting_info_route(
+    db: Database,
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    warp::path!("get_meeting_info" / String)
+        .and(warp::get())
+        .and(with_db(db))
+        .and_then(get_meeting_info)
+}
+
+pub async fn get_meeting_info(
+    company_name: String,
+    db: Database,
+) -> Result<impl warp::Reply, warp::Rejection> {
+    log::debug!("Get meeting info for company {}", company_name);
+
+    db.collection::<MeetingInfo>("meetings")
+        .find_one(doc! {"company_name": company_name}, None)
+        .await
+        .map(|res| match res {
+            Some(info) => warp::reply::json(&info),
+            None => warp::reply::json(&bson::Bson::Null),
+        })
         .map_err(|err| warp::reject::custom(Error(err.to_string())))
 }
 

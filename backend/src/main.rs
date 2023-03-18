@@ -19,6 +19,8 @@ async fn main() {
     let hello = service::signup_route(db.clone())
         .or(service::add_company_complaint_route(db.clone()))
         .or(service::get_company_complaints_route(db.clone()))
+        .or(service::get_meeting_info_route(db.clone()))
+        .or(service::add_meeting_route(db.clone()))
         .or(service::get_employee_count_route(db.clone()));
 
     warp::serve(hello).run(([0, 0, 0, 0], 3030)).await;
