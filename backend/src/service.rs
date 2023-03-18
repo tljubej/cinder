@@ -50,7 +50,7 @@ pub async fn signup(db: Database, worker: Worker) -> Result<impl warp::Reply, wa
 pub fn add_company_complaint_route(
     db: Database,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
-    warp::path!("add_company")
+    warp::path!("add_company_complaint")
         .and(warp::post())
         .and(with_db(db))
         .and(warp::body::json())
